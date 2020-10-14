@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -c -g `mysql_config --cflags` -Wall
 LIBS = `mysql_config --libs` -lcurses -lmenu
 
-OBJ = ui.o
+OBJ = ui.o window_main.o
 
 .c.o:
 	$(CC) $(CFLAGS) $<
@@ -10,8 +10,11 @@ OBJ = ui.o
 db: $(OBJ)
 	$(CC) $(OBJ) $(LIBS) -o $@
 
-main.o: 
-ui.o: 
+ui.o: window_main.h
+window_main.o: window_main.h
 
 clean:
-	rm *.o *.out
+	rm *.o db
+
+run:
+	./db 2> errlog.txt

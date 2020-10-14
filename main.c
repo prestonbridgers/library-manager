@@ -35,7 +35,7 @@ int main(void)
 {
     // Vars
     MYSQL_RES *res = NULL;
-    char *database = "C_DataBase";
+    char *database = "TeamInfo";
     char *user = "root";
     char *pass = "adamsandler1";
     
@@ -63,7 +63,7 @@ int main(void)
     printf("\nUsing %s\n", database);
 
     // Selecting records from the myTeam table
-    char *select = "SELECT * FROM players";
+    char *select = "SELECT * FROM myTeam";
     mysql_real_query(db_con, select, strlen(select));
 
     // Using the result of the last query to print

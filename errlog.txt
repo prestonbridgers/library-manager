@@ -1,0 +1,4 @@
+User pressed browse
+User pressed insert
+User pressed remove
+User pressed quit
