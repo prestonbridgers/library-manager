@@ -6,6 +6,7 @@
 #include <menu.h>
 
 WINDOW *main_window_init();
+void menu_fill(WINDOW *win, uint8_t starty, uint8_t startx, uint8_t columns, char *data[]);
 void menu_browse();
 void menu_insert();
 void menu_remove();
@@ -29,6 +30,9 @@ int main()
     // Vars
     //WINDOW *mainw = main_window_init();
     mainw = main_window_init();
+    //void menu_fill(WINDOW *win, uint8_t starty, uint8_t startx, uint8_t columns, char *data[]);
+    char *data[] = {"Title", "Author", "Publisher", "Date Published"};
+    menu_fill(mainw, 6, 1, 4, data);
     int input;
 
     // Input loop
@@ -122,6 +126,38 @@ WINDOW *main_window_init()
     refresh();
 
     return tmp;
+}
+
+void menu_fill(WINDOW *win, uint8_t starty, uint8_t startx, uint8_t columns, char *data[])
+{
+    int win_h;
+    int win_w;
+    getmaxyx(win, win_h, win_w);
+    
+    int div_len = win_w / columns;
+
+
+
+    for (size_t i = 0; i < columns; i++)
+    {
+        int cur_str_len = strlen(data[i]);
+
+        if (i != 0)
+            wmove(win, starty, startx + i * div_len - cur_str_len / 2 + div_len/2);
+        else
+            wmove(win, starty, startx + div_len / 2 - cur_str_len / 2);
+        wprintw(win, data[i]);
+
+        // Print dividers
+        for (size_t j = starty; j < win_h - 1; j++)
+        {
+            if (i == 0) continue;
+            wmove(win, j, i * div_len);
+            waddch(win, '|');
+        }
+    }
+
+    wrefresh(win);
 }
 
 void menu_browse()
