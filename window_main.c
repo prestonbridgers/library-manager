@@ -13,39 +13,38 @@ lm_MainWindow *lm_createMainWindow()
 {
     /* Memory Alloc */
     lm_MainWindow *mw = (lm_MainWindow *) calloc(1, sizeof(*mw));
-    mw->num_records = 0;
+    mw->n_records = 0;
 
     /* WINDOW init */
-    float scale = 1.15f;
-    uint8_t win_h = LINES / scale;
-    uint8_t win_w = COLS / scale;
+    mw->scale = 1.15f;
+    uint8_t win_h = LINES / mw->scale;
+    uint8_t win_w = COLS / mw->scale;
     uint32_t win_x = (COLS - win_w) / 2;
     uint32_t win_y = (LINES - win_h) / 2;
 
-    char *title = "Curt's Library Manager";
-    uint8_t title_w = strlen(title) - 1;
+    mw->title = "Curt's Library Manager";
+    uint8_t title_w = strlen(mw->title) - 1;
     uint8_t title_x = (win_w - 2 - title_w) / 2;
     uint8_t title_y = 1;
 
     mw->win = newwin(win_h, win_w, win_y, win_x);
 
     box(mw->win, 0, 0);
-    mvwprintw(mw->win, title_y, title_x, title);
+    mvwprintw(mw->win, title_y, title_x, mw->title);
     for (size_t i = 1; i < win_w - 1; i++)
         mvwaddch(mw->win, title_y + 1, i, '-');
 
     /* lm_MainWindow->menu_items init */
-    char *menu_item_list[] = {
-        "Browse",
-        "Insert",
-        "Remove",
-        "Quit",
-        NULL
-    };
-    uint8_t n_menu_items = sizeof(menu_item_list) / sizeof(menu_item_list[0]);
-    mw->menu_items = (ITEM **) calloc(n_menu_items, sizeof(*(mw->menu_items)));
-    for (size_t i = 0; i < n_menu_items; i++)
-        mw->menu_items[i] = new_item(menu_item_list[i], NULL);
+    mw->menu_item_list[0] = "Browse";
+    mw->menu_item_list[1] = "Insert";
+    mw->menu_item_list[2] = "Remove";
+    mw->menu_item_list[3] = "Quit";
+    mw->menu_item_list[4] = NULL;
+
+    mw->n_menu_items = sizeof(mw->menu_item_list) / sizeof(mw->menu_item_list[0]);
+    mw->menu_items = (ITEM **) calloc(mw->n_menu_items, sizeof(*mw->menu_items));
+    for (size_t i = 0; i < mw->n_menu_items; i++)
+        mw->menu_items[i] = new_item(mw->menu_item_list[i], NULL);
     mw->menu = new_menu(mw->menu_items);
     // Setting lm->menu options
     set_menu_win(mw->menu, mw->win);
@@ -62,36 +61,38 @@ lm_MainWindow *lm_createMainWindow()
     set_item_userptr(mw->menu_items[2], &lm_menu_remove);
     set_item_userptr(mw->menu_items[3], &lm_menu_quit);
 
-    char *cols[] = {
-        "Title",
-        "Page_Count",
-        "Publish_Date",
-        "Publisher",
-        "Author",
-    };
-    int cols_len = sizeof(cols) / sizeof(cols[0]);
+    mw->cols[0] = "Title";
+    mw->cols[1] = "Page_Count";
+    mw->cols[2] = "Publish_Date";
+    mw->cols[3] = "Publisher";
+    mw->cols[4] = "Author";
 
-    lm_fillMainWindowColumns(mw, 6, 1, cols, cols_len);
+    mw->n_cols = sizeof(mw->cols) / sizeof(mw->cols[0]);
+
+    lm_drawMainWindowColumns(mw);
 
     return mw;
 }
 
-void lm_fillMainWindowColumns(lm_MainWindow *lm, uint8_t starty, uint8_t startx, char *data[], int columns)
+void lm_drawMainWindowColumns(lm_MainWindow *lm)
 {
     int win_h;
     int win_w;
     getmaxyx(lm->win, win_h, win_w);
-    int div_len = win_w / columns;
+    int div_len = win_w / lm->n_cols;
 
-    for (size_t i = 0; i < columns; i++)
+    int starty = 6;
+    int startx = 1;
+
+    for (size_t i = 0; i < lm->n_cols; i++)
     {
-        int cur_str_len = strlen(data[i]);
+        int cur_str_len = strlen(lm->cols[i]);
 
         if (i != 0)
             wmove(lm->win, starty, startx + i * div_len - cur_str_len / 2 + div_len/2);
         else
             wmove(lm->win, starty, startx + div_len / 2 - cur_str_len / 2);
-        wprintw(lm->win, data[i]);
+        wprintw(lm->win, lm->cols[i]);
 
         // Print dividers
         for (size_t j = starty; j < win_h - 1; j++)
@@ -130,16 +131,16 @@ void lm_addRecord(lm_MainWindow *mw, StringList *record)
         int cur_str_len = strlen(trav->val);
 
         if (i != 0)
-            wmove(mw->win, starty + 1 * mw->num_records, startx + i * div_len - cur_str_len / 2 + div_len/2);
+            wmove(mw->win, starty + 1 * mw->n_records, startx + i * div_len - cur_str_len / 2 + div_len/2);
         else
-            wmove(mw->win, starty + 1 * mw->num_records, startx + div_len / 2 - cur_str_len / 2);
+            wmove(mw->win, starty + 1 * mw->n_records, startx + div_len / 2 - cur_str_len / 2);
         wprintw(mw->win, trav->val);
 
         i++;
     }
 
     wrefresh(mw->win);
-    mw->num_records++;
+    mw->n_records++;
 }
 
 void lm_menu_browse()
@@ -155,6 +156,10 @@ void lm_menu_insert()
     mvprintw(0, 0, "You pressed insert!");
 
     lm_InsertWindow *iw = lm_createInsertWindow();
+    curs_set(1);
+    form_driver(iw->form, REQ_NEXT_FIELD);
+    form_driver(iw->form, REQ_PREV_FIELD);
+
     int input;
 
     while ((input = getch()) != 'q')
@@ -194,6 +199,7 @@ void lm_menu_insert()
             case 10:
                 form_driver(iw->form, REQ_NEXT_FIELD);
                 form_driver(iw->form, REQ_PREV_FIELD);
+                form_driver(iw->form, REQ_END_LINE);
                 fprintf(stderr, "\n\n");
                 for (size_t i = 0; iw->fields[i] != NULL; i++)
                     if (i % 2 == 1)
@@ -211,6 +217,7 @@ void lm_menu_insert()
     wborder(iw->win, ' ', ' ', ' ',' ',' ',' ',' ',' ');
     wrefresh(iw->win);
     delwin(iw->win);
+    curs_set(0);
 }
 
 void lm_menu_remove()

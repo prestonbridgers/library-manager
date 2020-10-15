@@ -9,11 +9,21 @@ typedef struct
     WINDOW *win;
     MENU *menu;
     ITEM **menu_items;
-    int num_records;
+
+    float scale;
+    char *title;
+
+    int n_menu_items;
+
+    int n_cols;
+
+    int n_records;
+    char *menu_item_list[5];
+    char *cols[5];
 } lm_MainWindow;
 
 lm_MainWindow *lm_createMainWindow();
-void lm_fillMainWindowColumns(lm_MainWindow *lm, uint8_t starty, uint8_t startx, char *data[], int columns);
+void lm_drawMainWindowColumns(lm_MainWindow *lm);
 void lm_addRecord(lm_MainWindow *mw, StringList *record);
 void lm_menu_browse();
 void lm_menu_insert();

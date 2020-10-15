@@ -22,6 +22,15 @@ Adding record: 1992
 Adding record: 298
 Adding record: The Two Towers
 
+User pressed: j (int: 106)
+User pressed: j (int: 106)
+User pressed: j (int: 106)
+User pressed: k (int: 107)
+User pressed: k (int: 107)
+User pressed: k (int: 107)
+User pressed: j (int: 106)
+User pressed: j (int: 106)
+User pressed: j (int: 106)
 User pressed: k (int: 107)
 User pressed insert
 x: 42
@@ -37,13 +46,6 @@ Adding field: Publish_Date
 Adding field: lbl_publish_date
 Adding field: Page_Count
 Adding field: lbl_page_count
-
-
-Field #1: things                                  
-Field #3: i                                       
-Field #5: like                                    
-Field #7: to                                      
-Field #9: eat                                     
 Adding record: Laini Taylor
 Adding record: Disney Publishing
 Adding record: October 2nd, 2013
@@ -70,3 +72,4 @@ Adding record: The Two Towers
 
 User pressed: 
  (int: 10)
+User pressed:  (int: 12)

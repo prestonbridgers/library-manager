@@ -11,11 +11,11 @@ int is_running = 1;
 
 void update_listing(MYSQL_RES *res, lm_MainWindow *mWin)
 {
-    // Using the result of the last query to print
-    mWin->num_records = 0;
     MYSQL_ROW row;
     StringList *record;
+    mWin->n_records = 0;
     int num_fields = mysql_num_fields(res);
+
     for (; (row = mysql_fetch_row(res)) != NULL;)
     {
         record = NULL;
@@ -29,7 +29,6 @@ void update_listing(MYSQL_RES *res, lm_MainWindow *mWin)
         lm_addRecord(mWin, record);
     }
     mysql_free_result(res);
-    /* END DB QUERY AND ADDING RECORDS */
 }
 
 int main(void)
@@ -63,14 +62,15 @@ int main(void)
     curs_set(0);
     refresh();
 
+    // VARS
+    lm_MainWindow *mWin = lm_createMainWindow();
     int input;
 
-    lm_MainWindow *mWin = lm_createMainWindow();
+    char query_selectAll[255];
+    sprintf(query_selectAll, "SELECT * FROM %s", table);
 
-    // Selecting records from the myTeam table
-    char select[255];
-    sprintf(select, "SELECT * FROM %s", table);
-    mysql_real_query(db_con, select, strlen(select));
+    // Initial query for books and update UI's listings
+    mysql_real_query(db_con, query_selectAll, strlen(query_selectAll));
     res = mysql_use_result(db_con);
     update_listing(res, mWin);
 
@@ -87,15 +87,16 @@ int main(void)
             case 'l':
                 menu_driver(mWin->menu, REQ_RIGHT_ITEM);
                 break;
-            case 263: /* Backspace */
-                break;
             case 10: /* Enter */
             {
                 ITEM *cur = current_item(mWin->menu);
                 void (*p)(void) = item_userptr(cur);
                 p();
-                mysql_real_query(db_con, select, strlen(select));
+
+                // Re-query books and update UI's listings after every Enter keystroke
+                mysql_real_query(db_con, query_selectAll, strlen(query_selectAll));
                 res = mysql_use_result(db_con);
+                lm_drawMainWindowColumns(mWin);
                 update_listing(res, mWin);
                 break;
             }
