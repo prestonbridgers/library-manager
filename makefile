@@ -1,8 +1,8 @@
 CC = gcc
 CFLAGS = -c -g `mysql_config --cflags` -Wall
-LIBS = `mysql_config --libs` -lcurses -lmenu
+LIBS = `mysql_config --libs` -lcurses -lmenu -lform
 
-OBJ = ui.o window_main.o
+OBJ = db.o string_list.o window_main.o window_insert.o
 
 .c.o:
 	$(CC) $(CFLAGS) $<
@@ -10,8 +10,10 @@ OBJ = ui.o window_main.o
 db: $(OBJ)
 	$(CC) $(OBJ) $(LIBS) -o $@
 
-ui.o: window_main.h
-window_main.o: window_main.h
+db.o: string_list.h window_main.h
+string_list.o: string_list.h
+window_main.o: window_main.h window_insert.h
+window_insert.o: window_insert.h
 
 clean:
 	rm *.o db

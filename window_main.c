@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "string_list.h"
+#include "window_insert.h"
 #include "window_main.h"
 
 extern int is_running;
@@ -11,6 +13,7 @@ lm_MainWindow *lm_createMainWindow()
 {
     /* Memory Alloc */
     lm_MainWindow *mw = (lm_MainWindow *) calloc(1, sizeof(*mw));
+    mw->num_records = 0;
 
     /* WINDOW init */
     float scale = 1.15f;
@@ -61,9 +64,10 @@ lm_MainWindow *lm_createMainWindow()
 
     char *cols[] = {
         "Title",
-        "Author",
+        "Page_Count",
+        "Publish_Date",
         "Publisher",
-        "Publish_Date"
+        "Author",
     };
     int cols_len = sizeof(cols) / sizeof(cols[0]);
 
@@ -98,7 +102,44 @@ void lm_fillMainWindowColumns(lm_MainWindow *lm, uint8_t starty, uint8_t startx,
         }
     }
 
+    for (int i = 1; i < win_w - 1; i++)
+    {
+        wmove(lm->win, starty + 1, i);
+        waddch(lm->win, '-');
+    }
+
     wrefresh(lm->win);
+}
+
+void lm_addRecord(lm_MainWindow *mw, StringList *record)
+{
+    int num_fields = 0;
+    for (StringList *trav = record; trav != NULL; trav = trav->next) num_fields++;
+
+    int win_h;
+    int win_w;
+    getmaxyx(mw->win, win_h, win_w);
+    int div_len = win_w / num_fields;
+
+    int startx = 1;
+    int starty = 8;
+
+    size_t i = 0;
+    for (StringList *trav = record; trav != NULL; trav = trav->next)
+    {
+        int cur_str_len = strlen(trav->val);
+
+        if (i != 0)
+            wmove(mw->win, starty + 1 * mw->num_records, startx + i * div_len - cur_str_len / 2 + div_len/2);
+        else
+            wmove(mw->win, starty + 1 * mw->num_records, startx + div_len / 2 - cur_str_len / 2);
+        wprintw(mw->win, trav->val);
+
+        i++;
+    }
+
+    wrefresh(mw->win);
+    mw->num_records++;
 }
 
 void lm_menu_browse()
@@ -112,7 +153,64 @@ void lm_menu_insert()
 {
     fprintf(stderr, "User pressed insert\n");
     mvprintw(0, 0, "You pressed insert!");
-    refresh();
+
+    lm_InsertWindow *iw = lm_createInsertWindow();
+    int input;
+
+    while ((input = getch()) != 'q')
+    {
+        switch (input)
+        {
+            case KEY_DOWN:
+            case 9: //Tab
+                form_driver(iw->form, REQ_NEXT_FIELD);
+                form_driver(iw->form, REQ_END_LINE);
+                break;
+
+            case KEY_UP:
+                form_driver(iw->form, REQ_PREV_FIELD);
+                form_driver(iw->form, REQ_END_LINE);
+                break;
+
+            case KEY_LEFT:
+                form_driver(iw->form, REQ_PREV_CHAR);
+                break;
+
+            case KEY_RIGHT:
+                form_driver(iw->form, REQ_NEXT_CHAR);
+                break;
+
+                // Delete the char before cursor
+            case KEY_BACKSPACE:
+            case 127:
+                form_driver(iw->form, REQ_DEL_PREV);
+                break;
+
+                // Delete the char under the cursor
+            case KEY_DC:
+                form_driver(iw->form, REQ_DEL_CHAR);
+                break;
+
+            case 10:
+                form_driver(iw->form, REQ_NEXT_FIELD);
+                form_driver(iw->form, REQ_PREV_FIELD);
+                fprintf(stderr, "\n\n");
+                for (size_t i = 0; iw->fields[i] != NULL; i++)
+                    if (i % 2 == 1)
+                        fprintf(stderr, "Field #%ld: %s\n", i, field_buffer(iw->fields[i], 0));
+                break;
+
+            default:
+                form_driver(iw->form, input);
+                break;
+        }        
+        wrefresh(iw->win);
+    }
+
+    unpost_form(iw->form);
+    wborder(iw->win, ' ', ' ', ' ',' ',' ',' ',' ',' ');
+    wrefresh(iw->win);
+    delwin(iw->win);
 }
 
 void lm_menu_remove()

@@ -1,4 +1,72 @@
-User pressed browse
+Adding record: Laini Taylor
+Adding record: Disney Publishing
+Adding record: October 2nd, 2013
+Adding record: 455
+Adding record: Daughter of Smoke and Bone
+
+Adding record: Laini Taylor
+Adding record: Disney Publishing
+Adding record: October 2nd, 2013
+Adding record: 455
+Adding record: Dream of Smoke and Terror
+
+Adding record: JRR Tolkien
+Adding record: Tolkien Publishing
+Adding record: 1991
+Adding record: 312
+Adding record: The F.O.T.R
+
+Adding record: JRR Tolkien
+Adding record: Tolkien Publishing
+Adding record: 1992
+Adding record: 298
+Adding record: The Two Towers
+
+User pressed: k (int: 107)
 User pressed insert
-User pressed remove
-User pressed quit
+x: 42
+y: 11
+Num of fields in insert form: 10
+Adding field: Title
+Adding field: lbl_title
+Adding field: Author
+Adding field: lbl_author
+Adding field: Publisher
+Adding field: lbl_publisher
+Adding field: Publish_Date
+Adding field: lbl_publish_date
+Adding field: Page_Count
+Adding field: lbl_page_count
+
+
+Field #1: things                                  
+Field #3: i                                       
+Field #5: like                                    
+Field #7: to                                      
+Field #9: eat                                     
+Adding record: Laini Taylor
+Adding record: Disney Publishing
+Adding record: October 2nd, 2013
+Adding record: 455
+Adding record: Daughter of Smoke and Bone
+
+Adding record: Laini Taylor
+Adding record: Disney Publishing
+Adding record: October 2nd, 2013
+Adding record: 455
+Adding record: Dream of Smoke and Terror
+
+Adding record: JRR Tolkien
+Adding record: Tolkien Publishing
+Adding record: 1991
+Adding record: 312
+Adding record: The F.O.T.R
+
+Adding record: JRR Tolkien
+Adding record: Tolkien Publishing
+Adding record: 1992
+Adding record: 298
+Adding record: The Two Towers
+
+User pressed: 
+ (int: 10)
