@@ -28,7 +28,22 @@ void update_listing(MYSQL_RES *res, lm_MainWindow *mWin)
 
         lm_addRecord(mWin, record);
     }
-    mysql_free_result(res);
+}
+
+void db_addBook(MYSQL *db_con, char *author, char *publisher, char *date_published, int page_count, char *title)
+{
+    char *table = "book";
+    char query[255];
+    size_t query_len; 
+    int err;
+   
+    sprintf(query, "INSERT INTO %s VALUES(\"%s\", \"%s\", \"%s\", %d, \"%s\")",
+            table, author, publisher, date_published, page_count, title);
+    query_len = strlen(query);
+
+    err = mysql_real_query(db_con, query, query_len);
+    if (err)
+        fprintf(stderr, "Error occured adding book\n");
 }
 
 int main(void)
@@ -90,19 +105,35 @@ int main(void)
             case 10: /* Enter */
             {
                 ITEM *cur = current_item(mWin->menu);
-                void (*p)(void) = item_userptr(cur);
-                p();
+                void* (*p)(void) = item_userptr(cur);
+                StringList *l = NULL;
 
-                // Re-query books and update UI's listings after every Enter keystroke
-                mysql_real_query(db_con, query_selectAll, strlen(query_selectAll));
-                res = mysql_use_result(db_con);
-                lm_drawMainWindowColumns(mWin);
-                update_listing(res, mWin);
+                l = (StringList*) p();
+                if (l == NULL) break;
+
+                char *field_arr[5];
+                StringList *trav;
+                size_t i = 0;
+                for (trav = l; trav != NULL; trav = trav->next)
+                    field_arr[i++] = trav->val;
+
+                //int pc = atoi(field_arr[0]);
+                char *pubdate = field_arr[1];
+                char *pub = field_arr[2];
+                char *auth = field_arr[3];
+                char *title = field_arr[4];
+
+                db_addBook(db_con, auth, pub, pubdate, 0, title);
+
                 break;
             }
         }
         fprintf(stderr, "User pressed: %c (int: %d)\n", (char) input, input); //DEBUG
-
+                
+        mysql_real_query(db_con, query_selectAll, strlen(query_selectAll));
+        res = mysql_use_result(db_con);
+        lm_redrawMainWindow(mWin);
+        update_listing(res, mWin);
         wrefresh(mWin->win);
     }
 

@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 
 #include "window_insert.h"
 
@@ -62,6 +64,58 @@ lm_InsertWindow *lm_createInsertWindow()
 
     return iw;
 }
+
+size_t trimwhitespace(char *out, size_t len, const char *str)
+{
+  if(len == 0)
+    return 0;
+
+  const char *end;
+  size_t out_size;
+
+  // Trim leading space
+  while(isspace((unsigned char)*str)) str++;
+
+  if(*str == 0)  // All spaces?
+  {
+    *out = 0;
+    return 1;
+  }
+
+  // Trim trailing space
+  end = str + strlen(str) - 1;
+  while(end > str && isspace((unsigned char)*end)) end--;
+  end++;
+
+  // Set output size to minimum of trimmed string length and buffer size minus 1
+  out_size = (end - str) < len-1 ? (end - str) : len-1;
+
+  // Copy trimmed string and add null terminator
+  memcpy(out, str, out_size);
+  out[out_size] = 0;
+
+  return out_size;
+}
+
+StringList *lm_getBookFields(lm_InsertWindow *iw)
+{
+    StringList *fields_list = NULL;
+    char *field;
+
+    for (size_t i = 0; iw->fields[i] != NULL; i++)
+    {
+        if (i % 2 == 0) continue;
+
+        field = (char*) calloc(1, 255 * sizeof(*field));
+
+        trimwhitespace(field, strlen(field_buffer(iw->fields[i], 0)),
+                        field_buffer(iw->fields[i], 0));
+        sl_insert(&fields_list, field);
+    }
+
+    return fields_list;
+}
+
 /*
 int main(void)
 {

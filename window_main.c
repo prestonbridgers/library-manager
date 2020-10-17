@@ -2,8 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-
-#include "string_list.h"
+#include <ctype.h>
 #include "window_insert.h"
 #include "window_main.h"
 
@@ -23,16 +22,8 @@ lm_MainWindow *lm_createMainWindow()
     uint32_t win_y = (LINES - win_h) / 2;
 
     mw->title = "Curt's Library Manager";
-    uint8_t title_w = strlen(mw->title) - 1;
-    uint8_t title_x = (win_w - 2 - title_w) / 2;
-    uint8_t title_y = 1;
 
     mw->win = newwin(win_h, win_w, win_y, win_x);
-
-    box(mw->win, 0, 0);
-    mvwprintw(mw->win, title_y, title_x, mw->title);
-    for (size_t i = 1; i < win_w - 1; i++)
-        mvwaddch(mw->win, title_y + 1, i, '-');
 
     /* lm_MainWindow->menu_items init */
     mw->menu_item_list[0] = "Browse";
@@ -51,9 +42,6 @@ lm_MainWindow *lm_createMainWindow()
     set_menu_sub(mw->menu, derwin(mw->win, 1, win_w - 2, 3, 1));
     set_menu_format(mw->menu, 1, 4);
     set_menu_mark(mw->menu, " * ");
-    // Posting menu and refreshing mw->win
-    post_menu(mw->menu);
-    wrefresh(mw->win);
 
     //Setting the userptr for each item
     set_item_userptr(mw->menu_items[0], &lm_menu_browse);
@@ -69,12 +57,13 @@ lm_MainWindow *lm_createMainWindow()
 
     mw->n_cols = sizeof(mw->cols) / sizeof(mw->cols[0]);
 
-    lm_drawMainWindowColumns(mw);
+    // Drawing the window
+    lm_redrawMainWindow(mw);
 
     return mw;
 }
 
-void lm_drawMainWindowColumns(lm_MainWindow *lm)
+void lm_redrawMainWindow(lm_MainWindow *lm)
 {
     int win_h;
     int win_w;
@@ -84,6 +73,23 @@ void lm_drawMainWindowColumns(lm_MainWindow *lm)
     int starty = 6;
     int startx = 1;
 
+    // Clears the window
+    for (int i = 0; i < win_h; i++)
+        for (int j = 0; j < win_w; j++)
+            mvwaddch(lm->win, i, j, ' ');
+
+    // Boxes the window
+    box(lm->win, 0, 0);
+
+    // Draws the title bar
+    uint8_t title_w = strlen(lm->title) - 1;
+    uint8_t title_x = (win_w - 2 - title_w) / 2;
+    uint8_t title_y = 1;
+    mvwprintw(lm->win, title_y, title_x, lm->title);
+    for (size_t i = 1; i < win_w - 1; i++)
+        mvwaddch(lm->win, title_y + 1, i, '-');
+
+    // Draws the columns for the record display area
     for (size_t i = 0; i < lm->n_cols; i++)
     {
         int cur_str_len = strlen(lm->cols[i]);
@@ -94,7 +100,7 @@ void lm_drawMainWindowColumns(lm_MainWindow *lm)
             wmove(lm->win, starty, startx + div_len / 2 - cur_str_len / 2);
         wprintw(lm->win, lm->cols[i]);
 
-        // Print dividers
+        // Print column dividers
         for (size_t j = starty; j < win_h - 1; j++)
         {
             if (i == 0) continue;
@@ -103,12 +109,13 @@ void lm_drawMainWindowColumns(lm_MainWindow *lm)
         }
     }
 
+    // Draws the line beneach the column headers
     for (int i = 1; i < win_w - 1; i++)
-    {
-        wmove(lm->win, starty + 1, i);
-        waddch(lm->win, '-');
-    }
+        mvwaddch(lm->win, starty + 1, i, '-');
 
+    // Posting menu and refreshing mw->win
+    unpost_menu(lm->menu);
+    post_menu(lm->menu);
     wrefresh(lm->win);
 }
 
@@ -150,18 +157,22 @@ void lm_menu_browse()
     refresh();
 }
 
-void lm_menu_insert()
+StringList *lm_menu_insert()
 {
     fprintf(stderr, "User pressed insert\n");
     mvprintw(0, 0, "You pressed insert!");
 
+    // String list of user input to be returned
+    StringList *insert_fields = NULL;
+
+    // Create an InsertWindow to get input from the user
     lm_InsertWindow *iw = lm_createInsertWindow();
+
+    // Make the cursor visible
     curs_set(1);
-    form_driver(iw->form, REQ_NEXT_FIELD);
-    form_driver(iw->form, REQ_PREV_FIELD);
 
+    // Input loop for the InsertWindow
     int input;
-
     while ((input = getch()) != 'q')
     {
         switch (input)
@@ -196,14 +207,13 @@ void lm_menu_insert()
                 form_driver(iw->form, REQ_DEL_CHAR);
                 break;
 
+                // Enter
             case 10:
                 form_driver(iw->form, REQ_NEXT_FIELD);
                 form_driver(iw->form, REQ_PREV_FIELD);
                 form_driver(iw->form, REQ_END_LINE);
-                fprintf(stderr, "\n\n");
-                for (size_t i = 0; iw->fields[i] != NULL; i++)
-                    if (i % 2 == 1)
-                        fprintf(stderr, "Field #%ld: %s\n", i, field_buffer(iw->fields[i], 0));
+
+                insert_fields = lm_getBookFields(iw);
                 break;
 
             default:
@@ -218,6 +228,8 @@ void lm_menu_insert()
     wrefresh(iw->win);
     delwin(iw->win);
     curs_set(0);
+
+    return insert_fields;
 }
 
 void lm_menu_remove()
