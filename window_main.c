@@ -10,56 +10,51 @@ extern int is_running;
 
 lm_MainWindow *lm_createMainWindow()
 {
-    /* Memory Alloc */
     lm_MainWindow *mw = (lm_MainWindow *) calloc(1, sizeof(*mw));
-    mw->n_records = 0;
 
-    /* WINDOW init */
+    // Vars
     mw->scale = 1.15f;
     uint8_t win_h = LINES / mw->scale;
     uint8_t win_w = COLS / mw->scale;
     uint32_t win_x = (COLS - win_w) / 2;
     uint32_t win_y = (LINES - win_h) / 2;
 
+    // lm_MainWindow* init
+    mw->n_records = 0;
     mw->title = "Curt's Library Manager";
-
     mw->win = newwin(win_h, win_w, win_y, win_x);
-
-    /* lm_MainWindow->menu_items init */
-    mw->menu_item_list[0] = "Browse";
-    mw->menu_item_list[1] = "Insert";
-    mw->menu_item_list[2] = "Remove";
-    mw->menu_item_list[3] = "Quit";
-    mw->menu_item_list[4] = NULL;
-
-    mw->n_menu_items = sizeof(mw->menu_item_list) / sizeof(mw->menu_item_list[0]);
-    mw->menu_items = (ITEM **) calloc(mw->n_menu_items, sizeof(*mw->menu_items));
-    for (size_t i = 0; i < mw->n_menu_items; i++)
-        mw->menu_items[i] = new_item(mw->menu_item_list[i], NULL);
-    mw->menu = new_menu(mw->menu_items);
-    // Setting lm->menu options
-    set_menu_win(mw->menu, mw->win);
-    set_menu_sub(mw->menu, derwin(mw->win, 1, win_w - 2, 3, 1));
-    set_menu_format(mw->menu, 1, 4);
-    set_menu_mark(mw->menu, " * ");
-
-    //Setting the userptr for each item
-    set_item_userptr(mw->menu_items[0], &lm_menu_browse);
-    set_item_userptr(mw->menu_items[1], &lm_menu_insert);
-    set_item_userptr(mw->menu_items[2], &lm_menu_remove);
-    set_item_userptr(mw->menu_items[3], &lm_menu_quit);
 
     mw->cols[0] = "Title";
     mw->cols[1] = "Page_Count";
     mw->cols[2] = "Publish_Date";
     mw->cols[3] = "Publisher";
     mw->cols[4] = "Author";
-
     mw->n_cols = sizeof(mw->cols) / sizeof(mw->cols[0]);
 
-    // Drawing the window
-    lm_redrawMainWindow(mw);
+    mw->menu_item_list[0] = "Browse";
+    mw->menu_item_list[1] = "Insert";
+    mw->menu_item_list[2] = "Remove";
+    mw->menu_item_list[3] = "Quit";
+    mw->menu_item_list[4] = NULL;
 
+    /* lm_MainWindow->menu_items init */
+    mw->n_menu_items = sizeof(mw->menu_item_list) / sizeof(mw->menu_item_list[0]);
+    mw->menu_items = (ITEM **) calloc(mw->n_menu_items, sizeof(*mw->menu_items));
+    for (size_t i = 0; i < mw->n_menu_items; i++)
+        mw->menu_items[i] = new_item(mw->menu_item_list[i], NULL);
+    mw->menu = new_menu(mw->menu_items);
+
+    set_menu_win(mw->menu, mw->win);
+    set_menu_sub(mw->menu, derwin(mw->win, 1, win_w - 2, 3, 1));
+    set_menu_format(mw->menu, 1, 4);
+    set_menu_mark(mw->menu, " * ");
+
+    set_item_userptr(mw->menu_items[0], &lm_menu_browse);
+    set_item_userptr(mw->menu_items[1], &lm_menu_insert);
+    set_item_userptr(mw->menu_items[2], &lm_menu_remove);
+    set_item_userptr(mw->menu_items[3], &lm_menu_quit);
+
+    lm_redrawMainWindow(mw);
     return mw;
 }
 
@@ -132,7 +127,9 @@ void lm_addRecord(lm_MainWindow *mw, StringList *record)
     int startx = 1;
     int starty = 8;
 
-    size_t i = 0;
+    // The assignment of i to win_h suppresses a compiler warning
+    size_t i = win_h;
+    i = 0;
     for (StringList *trav = record; trav != NULL; trav = trav->next)
     {
         int cur_str_len = strlen(trav->val);
@@ -157,13 +154,13 @@ void lm_menu_browse()
     refresh();
 }
 
-StringList *lm_menu_insert()
+Book *lm_menu_insert()
 {
     fprintf(stderr, "User pressed insert\n");
     mvprintw(0, 0, "You pressed insert!");
 
     // String list of user input to be returned
-    StringList *insert_fields = NULL;
+    Book *book = NULL;
 
     // Create an InsertWindow to get input from the user
     lm_InsertWindow *iw = lm_createInsertWindow();
@@ -213,7 +210,7 @@ StringList *lm_menu_insert()
                 form_driver(iw->form, REQ_PREV_FIELD);
                 form_driver(iw->form, REQ_END_LINE);
 
-                insert_fields = lm_getBookFields(iw);
+                book = lm_getBookFields(iw);
                 break;
 
             default:
@@ -229,7 +226,7 @@ StringList *lm_menu_insert()
     delwin(iw->win);
     curs_set(0);
 
-    return insert_fields;
+    return book;
 }
 
 void lm_menu_remove()

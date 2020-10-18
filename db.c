@@ -6,6 +6,7 @@
 
 #include "string_list.h"
 #include "window_main.h"
+#include "structs.h"
 
 int is_running = 1;
 
@@ -30,7 +31,7 @@ void update_listing(MYSQL_RES *res, lm_MainWindow *mWin)
     }
 }
 
-void db_addBook(MYSQL *db_con, char *author, char *publisher, char *date_published, int page_count, char *title)
+void db_addBook(MYSQL *db_con, Book *b)
 {
     char *table = "book";
     char query[255];
@@ -38,7 +39,7 @@ void db_addBook(MYSQL *db_con, char *author, char *publisher, char *date_publish
     int err;
    
     sprintf(query, "INSERT INTO %s VALUES(\"%s\", \"%s\", \"%s\", %d, \"%s\")",
-            table, author, publisher, date_published, page_count, title);
+            table, b->author, b->publisher, b->date_published, b->page_count, b->title);
     query_len = strlen(query);
 
     err = mysql_real_query(db_con, query, query_len);
@@ -55,6 +56,10 @@ int main(void)
     char *table = "book";
     char *user = "root";
     char *pass = "adamsandler1";
+
+    LibState lib;
+    lib.is_running = 1;
+    lib.active_win = MainWindow;
     
     // Initializing a new mysql struct
     db = mysql_init(NULL);
@@ -106,24 +111,12 @@ int main(void)
             {
                 ITEM *cur = current_item(mWin->menu);
                 void* (*p)(void) = item_userptr(cur);
-                StringList *l = NULL;
 
-                l = (StringList*) p();
-                if (l == NULL) break;
+                Book *b = (Book*) calloc(1, sizeof(*b));
+                b = (Book*) p();
+                if (b == NULL) break;
 
-                char *field_arr[5];
-                StringList *trav;
-                size_t i = 0;
-                for (trav = l; trav != NULL; trav = trav->next)
-                    field_arr[i++] = trav->val;
-
-                //int pc = atoi(field_arr[0]);
-                char *pubdate = field_arr[1];
-                char *pub = field_arr[2];
-                char *auth = field_arr[3];
-                char *title = field_arr[4];
-
-                db_addBook(db_con, auth, pub, pubdate, 0, title);
+                db_addBook(db_con, b);
 
                 break;
             }

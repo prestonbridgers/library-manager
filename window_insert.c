@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 
+#include "util.h"
 #include "window_insert.h"
 
 lm_InsertWindow *lm_createInsertWindow()
@@ -65,42 +65,11 @@ lm_InsertWindow *lm_createInsertWindow()
     return iw;
 }
 
-size_t trimwhitespace(char *out, size_t len, const char *str)
+Book *lm_getBookFields(lm_InsertWindow *iw)
 {
-  if(len == 0)
-    return 0;
-
-  const char *end;
-  size_t out_size;
-
-  // Trim leading space
-  while(isspace((unsigned char)*str)) str++;
-
-  if(*str == 0)  // All spaces?
-  {
-    *out = 0;
-    return 1;
-  }
-
-  // Trim trailing space
-  end = str + strlen(str) - 1;
-  while(end > str && isspace((unsigned char)*end)) end--;
-  end++;
-
-  // Set output size to minimum of trimmed string length and buffer size minus 1
-  out_size = (end - str) < len-1 ? (end - str) : len-1;
-
-  // Copy trimmed string and add null terminator
-  memcpy(out, str, out_size);
-  out[out_size] = 0;
-
-  return out_size;
-}
-
-StringList *lm_getBookFields(lm_InsertWindow *iw)
-{
-    StringList *fields_list = NULL;
     char *field;
+
+    Book *b = (Book*) calloc(1, sizeof(*b));
 
     for (size_t i = 0; iw->fields[i] != NULL; i++)
     {
@@ -109,66 +78,27 @@ StringList *lm_getBookFields(lm_InsertWindow *iw)
         field = (char*) calloc(1, 255 * sizeof(*field));
 
         trimwhitespace(field, strlen(field_buffer(iw->fields[i], 0)),
-                        field_buffer(iw->fields[i], 0));
-        sl_insert(&fields_list, field);
-    }
+                field_buffer(iw->fields[i], 0));
 
-    return fields_list;
-}
-
-/*
-int main(void)
-{
-    initscr();
-    raw();
-    keypad(stdscr, TRUE);
-    noecho();
-    curs_set(1);
-    refresh();
-
-    lm_InsertWindow *iw = lm_createInsertWindow();
-    int input;
-
-    while ((input = getch()) != 'q')
-    {
-        switch (input)
+        switch (i)
         {
-            case KEY_DOWN:
-            case 9: //Tab
-                form_driver(iw->form, REQ_NEXT_FIELD);
-                form_driver(iw->form, REQ_END_LINE);
+            case 1:
+                b->title = field;
                 break;
-
-            case KEY_UP:
-                form_driver(iw->form, REQ_PREV_FIELD);
-                form_driver(iw->form, REQ_END_LINE);
+            case 3:
+                b->author = field;
                 break;
-
-            case KEY_LEFT:
-                form_driver(iw->form, REQ_PREV_CHAR);
+            case 5:
+                b->publisher = field;
                 break;
-
-            case KEY_RIGHT:
-                form_driver(iw->form, REQ_NEXT_CHAR);
+            case 7:
+                b->date_published = field;
                 break;
-
-                // Delete the char before cursor
-            case KEY_BACKSPACE:
-                form_driver(iw->form, REQ_DEL_PREV);
+            case 9:
+                b->page_count = atoi(field);
                 break;
-
-                // Delete the char under the cursor
-            case KEY_DC:
-                form_driver(iw->form, REQ_DEL_CHAR);
-                break;
-
-            default:
-                form_driver(iw->form, input);
-                break;
-        }        
-
-        wrefresh(iw->win);
+        }
     }
-    
-    endwin();
-}*/
+
+    return b;
+}

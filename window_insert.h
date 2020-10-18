@@ -4,6 +4,7 @@
 #include <curses.h>
 #include <form.h>
 #include "string_list.h"
+#include "structs.h"
 
 typedef struct
 {
@@ -13,6 +14,6 @@ typedef struct
 } lm_InsertWindow;
 
 lm_InsertWindow *lm_createInsertWindow();
-StringList *lm_getBookFields(lm_InsertWindow *iw);
+Book *lm_getBookFields(lm_InsertWindow *iw);
 
 #endif
