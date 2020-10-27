@@ -1,10 +1,34 @@
+/*
+    Curt's Library Manager, a local SQL database library management system.
+    Copyright (C) 2020  Preston Bridgers
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "util.h"
-#include "window_insert.h"
+#include "library_manager.h"
 
+/*
+ * Function creates the instance of lm_InsertWindow
+ * and returns it.
+ *
+ * Returns:
+ *   A pointer to an initialized instance of lm_InsertWindow.
+*/
 lm_InsertWindow *lm_createInsertWindow()
 {
     lm_InsertWindow *iw = (lm_InsertWindow *) calloc(1, sizeof(*iw));
@@ -58,18 +82,27 @@ lm_InsertWindow *lm_createInsertWindow()
 
     iw->form = new_form(iw->fields);
     set_form_win(iw->form, iw->win);
-    set_form_sub(iw->form, derwin(iw->win, num_fields, lbl_width + field_width + spacing, (win_h - (num_fields)) / 2, (win_w - (lbl_width + field_width + spacing)) / 2));
+    set_form_sub(iw->form, derwin(iw->win, num_fields, lbl_width + field_width + spacing,
+                                  (win_h - (num_fields)) / 2,
+                                  (win_w - (lbl_width + field_width + spacing)) / 2));
     post_form(iw->form);
     wrefresh(iw->win);
 
     return iw;
 }
 
-Book *lm_getBookFields(lm_InsertWindow *iw)
+/*
+ * Function fills a lm_Book struct with the contents
+ * of the insert window form and returns it.
+ *
+ * Returns:
+ *   A pointer to a filled lm_Book struct.
+*/
+lm_Book *lm_getBookFields(lm_InsertWindow *iw)
 {
     char *field;
 
-    Book *b = (Book*) calloc(1, sizeof(*b));
+    lm_Book *b = (lm_Book*) calloc(1, sizeof(*b));
 
     for (size_t i = 0; iw->fields[i] != NULL; i++)
     {

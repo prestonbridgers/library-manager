@@ -8,5 +8,6 @@ typedef struct string_list
 } StringList;
 
 void sl_insert(StringList **list, char *s);
+void sl_free(StringList *list);
 
 #endif

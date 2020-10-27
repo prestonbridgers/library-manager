@@ -1,20 +1,44 @@
+/*
+    Curt's Library Manager, a local SQL database library management system.
+    Copyright (C) 2020  Preston Bridgers
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
-#include <mysql.h>
+#include "library_manager.h"
 
-#include "string_list.h"
-#include "window_main.h"
-#include "structs.h"
-
-int is_running = 1;
-
-void update_listing(MYSQL_RES *res, lm_MainWindow *mWin)
+/*
+ * Function draws records of a MYSQL_RES to a nCurses window
+ * contained in state.
+ *
+ * Pre-conditions:
+ *    res = The result of a SELECT query containing records.
+ *
+ * Post-conditions:
+ *    Records in res will be drawn to the state->main_win->win
+ *    nCurses window.
+ *
+ *    Memory associated with res will be freed.
+*/
+void lm_update_listing(MYSQL_RES *res, lm_LibState *state)
 {
     MYSQL_ROW row;
     StringList *record;
-    mWin->n_records = 0;
+    state->win_main->n_records = 0;
     int num_fields = mysql_num_fields(res);
 
     for (; (row = mysql_fetch_row(res)) != NULL;)
@@ -27,11 +51,24 @@ void update_listing(MYSQL_RES *res, lm_MainWindow *mWin)
         }
         fprintf(stderr, "\n"); //DEBUG
 
-        lm_addRecord(mWin, record);
+        lm_addRecord(state, record);
     }
+
+    mysql_free_result(res);
 }
 
-void db_addBook(MYSQL *db_con, Book *b)
+/*
+ * Function inserts a book into table book in database.
+ *
+ * Pre-conditions:
+ *   Database in use by state->database contains a table named "book"
+ *   which is setup to match the contents of the lm_Book struct.
+ *
+ * Post-condition:
+ *   The contents of the lm_Book struct b will be inserted as a record
+ *   in database's book table.
+*/
+void lm_insertBook(lm_LibState *state, lm_Book *b)
 {
     char *table = "book";
     char query[255];
@@ -42,96 +79,7 @@ void db_addBook(MYSQL *db_con, Book *b)
             table, b->author, b->publisher, b->date_published, b->page_count, b->title);
     query_len = strlen(query);
 
-    err = mysql_real_query(db_con, query, query_len);
+    err = mysql_real_query(state->database, query, query_len);
     if (err)
         fprintf(stderr, "Error occured adding book\n");
-}
-
-int main(void)
-{
-    // Vars
-    MYSQL *db;
-    MYSQL_RES *res = NULL;
-    char *database = "library";
-    char *table = "book";
-    char *user = "root";
-    char *pass = "adamsandler1";
-
-    LibState lib;
-    lib.is_running = 1;
-    lib.active_win = MainWindow;
-    
-    // Initializing a new mysql struct
-    db = mysql_init(NULL);
-
-    // Connecting to the MySQL server running on localhost
-    MYSQL *db_con = mysql_real_connect(db, "localhost", user,
-                                       pass, NULL, 0,
-                                       NULL, 0);
-
-    // Selecting a database to use
-    char use_db[255];
-    sprintf(use_db, "USE %s", database);
-    mysql_real_query(db_con, use_db, strlen(use_db));
-
-    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~BEGIN UI CODE~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    initscr();
-    raw();
-    keypad(stdscr, TRUE);
-    noecho();
-    curs_set(0);
-    refresh();
-
-    // VARS
-    lm_MainWindow *mWin = lm_createMainWindow();
-    int input;
-
-    char query_selectAll[255];
-    sprintf(query_selectAll, "SELECT * FROM %s", table);
-
-    // Initial query for books and update UI's listings
-    mysql_real_query(db_con, query_selectAll, strlen(query_selectAll));
-    res = mysql_use_result(db_con);
-    update_listing(res, mWin);
-
-    // Input loop
-    while (is_running && (input = getch()) != 'q')
-    {
-        switch (input)
-        {
-            case 'j':
-            case 'h':
-                menu_driver(mWin->menu, REQ_LEFT_ITEM);
-                break;
-            case 'k':
-            case 'l':
-                menu_driver(mWin->menu, REQ_RIGHT_ITEM);
-                break;
-            case 10: /* Enter */
-            {
-                ITEM *cur = current_item(mWin->menu);
-                void* (*p)(void) = item_userptr(cur);
-
-                Book *b = (Book*) calloc(1, sizeof(*b));
-                b = (Book*) p();
-                if (b == NULL) break;
-
-                db_addBook(db_con, b);
-
-                break;
-            }
-        }
-        fprintf(stderr, "User pressed: %c (int: %d)\n", (char) input, input); //DEBUG
-                
-        mysql_real_query(db_con, query_selectAll, strlen(query_selectAll));
-        res = mysql_use_result(db_con);
-        lm_redrawMainWindow(mWin);
-        update_listing(res, mWin);
-        wrefresh(mWin->win);
-    }
-
-    delwin(mWin->win);
-    endwin();
-    mysql_library_end();
-    return 0;
 }
