@@ -17,7 +17,7 @@ window_insert.o: library_manager.h
 util.o: library_manager.h
 
 clean:
-	rm *.o lm
+	rm *.o lm errlog.txt
 
 run:
 	./lm 2> errlog.txt
