@@ -1,6 +1,0 @@
-Starting program
-Initialized library manager state
-Initialized library manager state database
-Calling initial redrawMainWindow
-Calling initial update listing
-User pressed quit
