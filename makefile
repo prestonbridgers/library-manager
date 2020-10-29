@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -c -g `mysql_config --cflags` -Wall
-LIBS = `mysql_config --libs` -lcurses -lmenu -lform
+LIBS = `mysql_config --libs` -lcurses -lmenu -lform -lpanel
 
 OBJ = util.o db.o lm.o string_list.o window_main.o window_insert.o
 

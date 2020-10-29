@@ -5,6 +5,7 @@
 #include <mysql.h>
 #include <menu.h>
 #include <form.h>
+#include <panel.h>
 #include "string_list.h"
 
 typedef struct
@@ -52,6 +53,10 @@ typedef struct
     lm_ActiveWindow active_win;
     lm_MainWindow *win_main;
     lm_InsertWindow *win_insert;
+
+    PANEL *pnl_main;
+    PANEL *pnl_insert;
+
     MYSQL *database;
 } lm_LibState;
 

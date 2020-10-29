@@ -38,8 +38,12 @@ int main(void)
     lmState.is_running  = 1;
     lmState.active_win  = MainWindow;
     lmState.win_main    = lm_createMainWindow();
-    //lmState.win_insert  = lm_createInsertWindow();
-    fprintf(stderr, "Initialized library manager state\n");
+    lmState.win_insert  = lm_createInsertWindow();
+
+    lmState.pnl_main    = new_panel(lmState.win_main->win);
+    lmState.pnl_insert  = new_panel(lmState.win_insert->win);
+
+    set_panel_userptr(lmState.pnl_insert, lmState.pnl_main);
 
     // C->MySQL database connector initialization
     MYSQL *db_unconnected;
@@ -80,6 +84,7 @@ int main(void)
     fprintf(stderr, "Calling initial update listing\n");
     lm_update_listing(res, &lmState);
 
+    PANEL *top = lmState.win_main->win;
     while (lmState.is_running)
     {
         input = getch();

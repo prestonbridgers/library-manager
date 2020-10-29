@@ -1,0 +1,14 @@
+Program initialization:
+	Database name:	library
+	Table name:	book
+
+
+h_main: 39
+w_main: 146
+y_main: 3
+x_main: 11
+
+h_insert: 22
+w_insert: 84
+y_insert: 11
+x_insert: 42
