@@ -1,5 +1,22 @@
-default:
-	gcc main.c -lcurses -lmenu -lform -lpanel
+CC = gcc
+CFLAGS = -c -g -Wall
+
+LIBS = -lcurses -lpanel -lform -lmenu
+OBJ = main.o clm.o
+
+.c.o:
+	$(CC) $(CFLAGS) $<
+
+clm: $(OBJ)
+	$(CC) $(OBJ) $(LIBS) -o $@
+
+main.o: clm.h
+clm.o: clm.h
+
+clean:
+	rm clm *.o
 
 run:
-	./a.out library book 2> err.log
+	make
+	./clm library book 2> err.log
+	make clean

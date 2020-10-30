@@ -3,12 +3,12 @@ Program initialization:
 	Table name:	book
 
 
-h_main: 39
+h_main: 40
 w_main: 146
 y_main: 3
 x_main: 11
 
-h_insert: 22
+h_insert: 23
 w_insert: 84
 y_insert: 11
 x_insert: 42
