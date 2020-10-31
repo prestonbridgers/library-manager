@@ -40,6 +40,8 @@ typedef struct
     FIELD **form_insert_fields;
     char *form_insert_fieldNames[INSERT_FORM_NUM_FIELDS];
 
+    uint32_t n_records;
+
     char *title_main;
     char *title_insert;
     char *title_remove;
@@ -78,6 +80,7 @@ typedef struct
 LM_STATE*   lm_initState();
 void        lm_delState(LM_STATE *s);
 void        lm_drawMainWin(LM_STATE *s);
+void        lm_drawRecord(LM_STATE *s, db_Book *book);
 void        lm_drawInsertWin(LM_STATE *s);
 db_Book*    lm_handleEvent_insertWindow(LM_STATE *s);
 uint8_t     lm_windowTyper_insert();
@@ -90,5 +93,6 @@ void        db_insertBook(MYSQL *db, char *table, db_Book *book);
 void        db_destroyBook(db_Book *b);
 db_Book*    db_getBookFields(LM_STATE *s);
 size_t      trimwhitespace(char *out, size_t len, const char *str);
+void        lm_update_listing(MYSQL_RES *res, LM_STATE *state);
 
 #endif

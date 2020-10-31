@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "lm.h"
 
@@ -46,6 +47,13 @@ int main(int argc, char *argv[])
     while (state->isRunning)
     {
         lm_drawMainWin(state);
+        //start db update code
+        char select_all[255];
+        sprintf(select_all, "SELECT * from %s", table_name);
+        mysql_real_query(state->db, select_all, strlen(select_all));
+        MYSQL_RES *res = mysql_use_result(state->db);
+        lm_update_listing(res, state);
+        // end db update code
         lm_drawInsertWin(state);
         update_panels();
         doupdate();

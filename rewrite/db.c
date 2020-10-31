@@ -62,17 +62,17 @@ db_Book *db_bookFromRow(MYSQL_ROW row, int num_fields)
  *
  *    Memory associated with res will be freed.
 */
-void lm_update_listing(MYSQL_RES *res/*, lm_LibState *state*/)
+void lm_update_listing(MYSQL_RES *res, LM_STATE *state)
 {
     MYSQL_ROW row;
-    //state->win_main->n_records = 0;
+    state->n_records = 0;
     int num_fields = mysql_num_fields(res);
 
     for (; (row = mysql_fetch_row(res)) != NULL;)
     {
         db_Book *book = db_bookFromRow(row, num_fields);
 
-        //lm_addRecord(state, record);
+        lm_drawRecord(state, book);
         db_destroyBook(book);
     }
 

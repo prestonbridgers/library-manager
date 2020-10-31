@@ -3,15 +3,15 @@ Program initialization:
 	Table name:	book
 
 
-h_main: 20
-w_main: 69
-y_main: 2
-x_main: 5
+h_main: 38
+w_main: 146
+y_main: 3
+x_main: 11
 
-h_insert: 12
-w_insert: 40
-y_insert: 6
-x_insert: 20
+h_insert: 22
+w_insert: 84
+y_insert: 11
+x_insert: 42
 Testing book insertion
 Error occured adding book
 Inserted book, destroying book struct

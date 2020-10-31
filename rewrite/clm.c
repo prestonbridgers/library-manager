@@ -115,6 +115,7 @@ LM_STATE *lm_initState()
     local_state->w_main = COLS / scale_main;
     local_state->x_main = (COLS - local_state->w_main) / 2;
     local_state->y_main = (LINES - local_state->h_main) / 2;
+    local_state->n_records = 0;
 
     fprintf(stderr, "\nh_main: %d\nw_main: %d\ny_main: %d\nx_main: %d\n",
                     local_state->h_main, local_state->w_main,
@@ -174,9 +175,9 @@ LM_STATE *lm_initState()
     local_state->form_insert_fieldNames[4] = "Publisher";
     local_state->form_insert_fieldNames[5] = "lbl_publisher";
     local_state->form_insert_fieldNames[6] = "Publish_Date";
-    local_state->form_insert_fieldNames[8] = "lbl_publish_date";
-    local_state->form_insert_fieldNames[9] = "Page_Count";
-    local_state->form_insert_fieldNames[10] = "lbl_page_count";
+    local_state->form_insert_fieldNames[7] = "lbl_publish_date";
+    local_state->form_insert_fieldNames[8] = "Page_Count";
+    local_state->form_insert_fieldNames[9] = "lbl_page_count";
 
     local_state->form_insert_fields = (FIELD**) calloc(INSERT_FORM_NUM_FIELDS + 1, sizeof(*local_state->form_insert_fields));
 
@@ -235,6 +236,57 @@ void lm_delState(LM_STATE *s)
     mysql_close(s->db);
 
     free(s);
+}
+
+/*
+ * Functions draws a properly formatted record onto the main window.
+ *
+ * Paramaters:
+ *   state: Current state of the library manager.
+ *   record: Book record as a list of strings to be drawn.
+*/
+void lm_drawRecord(LM_STATE *s, db_Book *book)
+{
+    int div_len = s->w_main / WIN_MAIN_NUM_COLUMNS;
+
+    int startx = 1;
+    int starty = 8;
+
+    for (size_t i = 0; i < WIN_MAIN_NUM_COLUMNS; i++)
+    {
+        char str[64];
+        size_t cur_str_len;
+
+        switch (i)
+        {
+            case 0:
+                sprintf(str, "%s", book->title);
+                break;
+            case 1:
+                sprintf(str, "%s", book->author);
+                break;
+            case 2:
+                sprintf(str, "%s", book->date_published);
+                break;
+            case 3:
+                sprintf(str, "%s", book->publisher);
+                break;
+            case 4:
+                sprintf(str, "%d", book->page_count);
+                break;
+        }       
+        cur_str_len = strlen(str);
+
+        if (i != 0)
+            wmove(s->win_main, starty + 1 * s->n_records, startx + i * div_len - cur_str_len / 2 + div_len/2);
+        else
+            wmove(s->win_main, starty + 1 * s->n_records, startx + div_len / 2 - cur_str_len / 2);
+
+        wprintw(s->win_main, str);
+    }
+
+    wrefresh(s->win_main);
+    s->n_records++;
 }
 
 db_Book *lm_handleEvent_insertWindow(LM_STATE *s)
