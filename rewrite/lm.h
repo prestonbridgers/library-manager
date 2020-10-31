@@ -1,18 +1,25 @@
-#ifndef CLM_H_INCLUDED
-#define CLM_H_INCLUDED
+#ifndef LM_H_INCLUDED
+#define LM_H_INCLUDED
 
 #include <ncurses.h>
 #include <panel.h>
 #include <form.h>
 #include <menu.h>
+#include <mysql.h>
 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~START LIBRARY HEADER~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #define MAIN_MENU_NUM_ENTRIES 5
 #define INSERT_FORM_NUM_FIELDS 10
 #define WIN_MAIN_NUM_COLUMNS 5
 
+#define MAIN_WINDOW     0
+#define INSERT_WINDOW   1
+
 typedef struct
 {
     uint8_t isRunning;
+
+    MYSQL *db;
 
     WINDOW *win_main;
     WINDOW *win_insert;
@@ -59,8 +66,29 @@ typedef struct
     uint8_t h_about;
 } LM_STATE;
 
+typedef struct
+{
+    char *title;
+    char *author;
+    char *publisher;
+    char *date_published;
+    int page_count;
+} db_Book;
+
 LM_STATE*   lm_initState();
+void        lm_delState(LM_STATE *s);
 void        lm_drawMainWin(LM_STATE *s);
 void        lm_drawInsertWin(LM_STATE *s);
+db_Book*    lm_handleEvent_insertWindow(LM_STATE *s);
+uint8_t     lm_windowTyper_insert();
+uint8_t     lm_windowTyper_main();
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~START DATABASE HEADER~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MYSQL*      db_initDB(char *user, char *pass, char *db_name);
+void        db_insertBook(MYSQL *db, char *table, db_Book *book);
+void        db_destroyBook(db_Book *b);
+db_Book*    db_getBookFields(LM_STATE *s);
+size_t      trimwhitespace(char *out, size_t len, const char *str);
 
 #endif

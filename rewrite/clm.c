@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "clm.h"
+#include "lm.h"
 
 /*
  * Function draws given string str at the center of row y
@@ -123,7 +123,6 @@ LM_STATE *lm_initState()
     // Creating the curses window and creating a panel with it
     local_state->win_main = newwin(local_state->h_main, local_state->w_main,
                                    local_state->y_main, local_state->x_main);
-    local_state->pnl_main = new_panel(local_state->win_main);
 
     // Initializing the main window's menu
     local_state->menu_main_itemNames[0] = "Insert";
@@ -141,6 +140,8 @@ LM_STATE *lm_initState()
     set_menu_sub(local_state->menu_main, derwin(local_state->win_main, 1, local_state->w_main - 2, 3, 1));
     set_menu_format(local_state->menu_main, 1, 4);
     set_menu_mark(local_state->menu_main, " * ");
+
+    set_item_userptr(local_state->menu_main_items[0], &lm_windowTyper_insert);
 
     // Initializing column names for displaying books in the main window
     local_state->win_main_columns[0] = "Title";
@@ -165,7 +166,6 @@ LM_STATE *lm_initState()
     // Creating the curses window and creating a panel with it
     local_state->win_insert = newwin(local_state->h_insert, local_state->w_insert,
                                    local_state->y_insert, local_state->x_insert);
-    local_state->pnl_insert = new_panel(local_state->win_insert);
 
     local_state->form_insert_fieldNames[0] = "Title";
     local_state->form_insert_fieldNames[1] = "lbl_title";
@@ -206,9 +206,108 @@ LM_STATE *lm_initState()
                                   (local_state->h_insert - (INSERT_FORM_NUM_FIELDS)) / 2,
                                   (local_state->w_insert - (lbl_width + field_width + spacing)) / 2));
    
+    local_state->pnl_insert = new_panel(local_state->win_insert);
+    local_state->pnl_main = new_panel(local_state->win_main);
     // Setting panel user pointers to point back to main panel
-    set_panel_userptr(local_state->pnl_main, local_state->pnl_insert);
     set_panel_userptr(local_state->pnl_insert, local_state->pnl_main);
     
     return local_state;
+}
+
+void lm_delState(LM_STATE *s)
+{
+    for (int i = 0; i < MAIN_MENU_NUM_ENTRIES; i++)
+        free_item(s->menu_main_items[i]);
+    free(s->menu_main_items);
+    free_menu(s->menu_main);
+
+    for (int i = 0; i < INSERT_FORM_NUM_FIELDS; i++)
+        free_field(s->form_insert_fields[i]);
+    free(s->form_insert_fields);
+    unpost_form(s->form_insert);
+    free_form(s->form_insert);
+    delwin(s->win_main);
+    delwin(s->win_insert);
+
+    del_panel(s->pnl_main);
+    del_panel(s->pnl_insert);
+
+    mysql_close(s->db);
+
+    free(s);
+}
+
+db_Book *lm_handleEvent_insertWindow(LM_STATE *s)
+{
+    db_Book *book = NULL;
+    int input;
+    uint8_t insert_running = 1;
+
+    curs_set(1);
+
+    while (insert_running)
+    {
+        input = getch();
+        switch (input)
+        {
+            case KEY_DOWN:
+            case 9: //Tab
+                form_driver(s->form_insert, REQ_NEXT_FIELD);
+                form_driver(s->form_insert, REQ_END_LINE);
+                break;
+
+            case KEY_UP:
+                form_driver(s->form_insert, REQ_PREV_FIELD);
+                form_driver(s->form_insert, REQ_END_LINE);
+                break;
+
+            case KEY_LEFT:
+                form_driver(s->form_insert, REQ_PREV_CHAR);
+                break;
+
+            case KEY_RIGHT:
+                form_driver(s->form_insert, REQ_NEXT_CHAR);
+                break;
+
+                // Delete the char before cursor
+            case KEY_BACKSPACE:
+            case 127:
+                form_driver(s->form_insert, REQ_DEL_PREV);
+                break;
+
+                // Delete the char under the cursor
+            case KEY_DC:
+                form_driver(s->form_insert, REQ_DEL_CHAR);
+                break;
+
+                // Enter
+            case 10:
+                form_driver(s->form_insert, REQ_NEXT_FIELD);
+                form_driver(s->form_insert, REQ_PREV_FIELD);
+                form_driver(s->form_insert, REQ_END_LINE);
+
+                book = db_getBookFields(s);
+                insert_running = 0;
+                break;
+
+            default:
+                form_driver(s->form_insert, input);
+                break;
+        }
+
+        wrefresh(s->win_insert);
+    }
+
+    curs_set(0);
+    return book;
+}
+
+uint8_t lm_windowTyper_main()
+{
+    return MAIN_WINDOW;
+}
+
+uint8_t lm_windowTyper_insert()
+{
+    return INSERT_WINDOW;
 }
