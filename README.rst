@@ -48,6 +48,8 @@ following command:
 Usage
 =====
 
+.. image:: ./screenshots/main_window.png
+
 Compilation
 -----------
 

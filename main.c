@@ -86,9 +86,6 @@ int main(int argc, char *argv[])
         input = getch();
         switch (input)
         {
-            case 'q':
-                state->isRunning = 0;
-                break;
             case 'j':
             case 'h':
                 menu_driver(state->menu_main, REQ_LEFT_ITEM);
