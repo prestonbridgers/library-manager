@@ -23,7 +23,6 @@
 
 #include "lm.h"
 
-#define EXIT_OK                         0
 #define EXIT_DB_NOT_FOUND               1
 #define EXIT_FAILED_TO_CONNECT_TO_DB    2
 #define EXIT_TABLE_NOT_FOUND            3
@@ -45,16 +44,16 @@ void clm_terminate(LM_STATE *s, uint8_t exit_code)
             fprintf(stderr, "ERROR: TABLE NOT FOUND\nExiting...\n");
             printf("ERROR: TABLE NOT FOUND\nExiting...\n");
             break;
-        case EXIT_OK:
+        case EXIT_SUCCESS:
             fprintf(stderr, "Exiting: EXIT OK\n");
             printf("Exiting: EXIT OK\n");
-            exit(0);
+            exit(EXIT_SUCCESS);
             break;
     }
 
     lm_delState(s);
     mysql_library_end();
-    exit(1);
+    exit(EXIT_FAILURE);
 }
 
 uint8_t checkDB(MYSQL *db, char *database_name, char *table_name)
@@ -88,7 +87,7 @@ uint8_t checkDB(MYSQL *db, char *database_name, char *table_name)
 
     if (!table_found) return EXIT_TABLE_NOT_FOUND;
 
-    return 0;
+    return EXIT_SUCCESS;
 }
 
 int main(int argc, char *argv[])
@@ -202,6 +201,6 @@ int main(int argc, char *argv[])
                 break;
         }
     }
-    clm_terminate(state, EXIT_OK);
-    return 0;
+    clm_terminate(state, EXIT_SUCCESS);
+    return EXIT_SUCCESS;
 }
