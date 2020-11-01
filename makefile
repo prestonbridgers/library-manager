@@ -1,23 +1,23 @@
 CC = gcc
-CFLAGS = -c -g `mysql_config --cflags` -Wall
-LIBS = `mysql_config --libs` -lcurses -lmenu -lform -lpanel
+CFLAGS = -c -g -Wall `mysql_config --cflags`
 
-OBJ = util.o db.o lm.o string_list.o window_main.o window_insert.o
+LIBS = `mysql_config --libs` -lcurses -lpanel -lform -lmenu
+OBJ = main.o clm.o db.o
 
 .c.o:
 	$(CC) $(CFLAGS) $<
 
-lm: $(OBJ)
+clm: $(OBJ)
 	$(CC) $(OBJ) $(LIBS) -o $@
 
-lm.o: library_manager.h
-string_list.o: string_list.h
-window_main.o: library_manager.h
-window_insert.o: library_manager.h
-util.o: library_manager.h
+main.o: lm.h
+clm.o: lm.h
+db.o: lm.h
 
 clean:
-	rm *.o lm errlog.txt
+	rm clm *.o
 
 run:
-	./lm 2> errlog.txt
+	make
+	./clm library book 2> err.log
+	make clean

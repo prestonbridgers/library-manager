@@ -27,7 +27,8 @@ Download
 Dependencies (install these first using your package
 manager of choice):
 
-- libncurses-dev
+- libncurses
+- mySQL server
 
 .. note::
 
@@ -52,6 +53,12 @@ Compilation
 
 Keybinds
 --------
+
+Navigate the main menu with vim keys.
+Press <Enter> to select a menu item.
+
+In the insert window, press tab to navigate the insert fields.
+Press <Enter> to insert the fields as a book entry and close the insert window.
 
 FAQs
 ====
