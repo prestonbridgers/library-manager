@@ -1,3 +1,21 @@
+/*
+    Curt's Library Manager, a local SQL database library management system.
+    Copyright (C) 2020  Preston Bridgers
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -77,7 +95,6 @@ void lm_drawMainWin(LM_STATE *s)
  * Function draws everything to the insert nCurses
  * WINDOW buffer.
  */
-
 void lm_drawInsertWin(LM_STATE *s)
 {
     // Clearing the entire window
@@ -96,6 +113,38 @@ void lm_drawInsertWin(LM_STATE *s)
 
     unpost_form(s->form_insert);
     post_form(s->form_insert);
+}
+
+void lm_drawAboutWin(LM_STATE *s)
+{
+    // Clearing the entire window
+    for (size_t i = 0; i < s->h_about; i++)
+        for (size_t j = 0; j < s->w_about; j++)
+            mvwaddch(s->win_about, i, j, ' ');
+
+    // Drawing the title in the top center and the bar underneath
+    uint8_t title_y = 1;
+    lm_drawCenteredString(s->win_about, s->w_about, title_y, s->title_about);
+    for (size_t i = 1; i < s->w_about - 1; i++)
+        mvwaddch(s->win_about, title_y + 1, i, '-');
+
+    // Draws the content to the about window
+    uint8_t content_starty = 4;
+    uint8_t x = 1;
+    for (char *c = s->content_about; *c != '\0'; c++)
+    {
+        if (*c == '\n')
+        {
+            x = 0;
+            content_starty++;
+        }
+
+        mvwaddch(s->win_about, content_starty, x, *c);
+        x++;
+    }
+
+    // Drawing solid border around window
+    box(s->win_about, 0, 0);
 }
 
 /*
@@ -142,7 +191,9 @@ LM_STATE *lm_initState()
     set_menu_format(local_state->menu_main, 1, 4);
     set_menu_mark(local_state->menu_main, " * ");
 
-    set_item_userptr(local_state->menu_main_items[0], &lm_windowTyper_insert);
+    set_item_userptr(local_state->menu_main_items[0], &lm_menuItemFunc_insert);
+    set_item_userptr(local_state->menu_main_items[2], &lm_menuItemFunc_about);
+    set_item_userptr(local_state->menu_main_items[3], &lm_menuItemFunc_quit);
 
     // Initializing column names for displaying books in the main window
     local_state->win_main_columns[0] = "Title";
@@ -206,11 +257,23 @@ LM_STATE *lm_initState()
     set_form_sub(local_state->form_insert, derwin(local_state->win_insert, INSERT_FORM_NUM_FIELDS, lbl_width + field_width + spacing,
                                   (local_state->h_insert - (INSERT_FORM_NUM_FIELDS)) / 2,
                                   (local_state->w_insert - (lbl_width + field_width + spacing)) / 2));
-   
+  
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~INITIALIZING THE ABOUT WINDOW~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    local_state->title_about = "About the Program";
+    float scale_about = 2.0f;
+    local_state->h_about = LINES / scale_about;
+    local_state->w_about = COLS / scale_about;
+    local_state->x_about = (COLS - local_state->w_about) / 2;
+    local_state->y_about = (LINES - local_state->h_about) / 2;
+    local_state->win_about = newwin(local_state->h_about, local_state->w_about,
+                                     local_state->y_about, local_state->x_about);
+
+    local_state->content_about = "Curt's Library Manager; an easy to use personal library management system.\nCopyright (C) 2020  Preston Bridgers\n\nThis program is free software: you can redistribute it and/or modify\nit under the terms of the GNU General Public License as published by\nthe Free Software Foundation, either version 3 of the License, or\n(at your option) any later version.\n\nThis program is distributed in the hope that it will be useful,\nbut WITHOUT ANY WARRANTY; without even the implied warranty of\nMERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\nGNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License\nalong with this program.  If not, see <http://www.gnu.org/licenses/>.";
+    fprintf(stderr, "\n%s\n", local_state->content_about);
+    
+    local_state->pnl_about = new_panel(local_state->win_about);
     local_state->pnl_insert = new_panel(local_state->win_insert);
     local_state->pnl_main = new_panel(local_state->win_main);
-    // Setting panel user pointers to point back to main panel
-    set_panel_userptr(local_state->pnl_insert, local_state->pnl_main);
     
     return local_state;
 }
@@ -289,7 +352,7 @@ void lm_drawRecord(LM_STATE *s, db_Book *book)
     s->n_records++;
 }
 
-db_Book *lm_handleEvent_insertWindow(LM_STATE *s)
+db_Book *lm_handleEvent_insert(LM_STATE *s)
 {
     db_Book *book = NULL;
     int input;
@@ -354,12 +417,22 @@ db_Book *lm_handleEvent_insertWindow(LM_STATE *s)
     return book;
 }
 
-uint8_t lm_windowTyper_main()
+uint8_t lm_menuItemFunc_insert()
 {
-    return MAIN_WINDOW;
+    return INSERT_ITEM;
 }
 
-uint8_t lm_windowTyper_insert()
+uint8_t lm_menuItemFunc_remove()
 {
-    return INSERT_WINDOW;
+    return REMOVE_ITEM;
+}
+
+uint8_t lm_menuItemFunc_about()
+{
+    return ABOUT_ITEM;
+}
+
+uint8_t lm_menuItemFunc_quit()
+{
+    return QUIT_ITEM;
 }

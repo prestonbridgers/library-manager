@@ -1,3 +1,21 @@
+/*
+    Curt's Library Manager, a local SQL database library management system.
+    Copyright (C) 2020  Preston Bridgers
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -29,25 +47,12 @@ int main(int argc, char *argv[])
     LM_STATE *state = lm_initState();
     state->db = db_initDB(username, password, database_name);
 
-    // Testing book insertion
-    fprintf(stderr, "Testing book insertion\n");
-    db_Book *b = calloc(1, sizeof(*b));
-    b->title            = "George of the Jungle";
-    b->author           = "Curt Bridgers";
-    b->publisher        = "Bridgers Publishing";
-    b->date_published   = "2020";
-    b->page_count       = 345;
-    db_insertBook(state->db, table_name, b);
-    fprintf(stderr, "Inserted book, destroying book struct\n");
-    db_destroyBook(b);
-    fprintf(stderr, "Destroyed book\n");
-
     PANEL *top = state->pnl_main;
     int32_t input;
     while (state->isRunning)
     {
         lm_drawMainWin(state);
-        //start db update code
+        //start book list update code
         char select_all[255];
         sprintf(select_all, "SELECT * from %s", table_name);
         mysql_real_query(state->db, select_all, strlen(select_all));
@@ -55,12 +60,14 @@ int main(int argc, char *argv[])
         lm_update_listing(res, state);
         // end db update code
         lm_drawInsertWin(state);
+        lm_drawAboutWin(state);
         update_panels();
         doupdate();
 
+        // If current window is the insert window
         if (top == state->pnl_insert)
         {
-            db_Book *book = lm_handleEvent_insertWindow(state);
+            db_Book *book = lm_handleEvent_insert(state);
 
             db_insertBook(state->db, table_name, book);
             fprintf(stderr, "Inserted book, destroying book struct\n");
@@ -86,18 +93,29 @@ int main(int argc, char *argv[])
             case 'l':
                 menu_driver(state->menu_main, REQ_RIGHT_ITEM);
                 break;
-            case 9: // Tab
-                top = (PANEL*) panel_userptr(top);
-                top_panel(top);
-                break;
             case 10: // Enter
                 {
                     ITEM *cur_item = current_item(state->menu_main);
                     uint8_t (*item_func)(void) = item_userptr(cur_item);
 
-                    if (item_func() == INSERT_WINDOW)
+                    uint8_t item_selected = item_func();
+                    if (item_selected == INSERT_ITEM)
                     {
                         top = (PANEL*) state->pnl_insert;
+                        top_panel(top);
+                    }
+                    else if (item_selected == QUIT_ITEM)
+                    {
+                        state->isRunning = 0;
+                    }
+                    else if (item_selected == ABOUT_ITEM)
+                    {
+                        top = (PANEL*) state->pnl_about;
+                        top_panel(top);
+                        update_panels();
+                        doupdate();
+                        getch();
+                        top = (PANEL*) state->pnl_main;
                         top_panel(top);
                     }
                 }

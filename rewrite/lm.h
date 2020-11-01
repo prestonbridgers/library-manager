@@ -12,8 +12,10 @@
 #define INSERT_FORM_NUM_FIELDS 10
 #define WIN_MAIN_NUM_COLUMNS 5
 
-#define MAIN_WINDOW     0
-#define INSERT_WINDOW   1
+#define INSERT_ITEM 0
+#define REMOVE_ITEM 1
+#define ABOUT_ITEM  2
+#define QUIT_ITEM   3
 
 typedef struct
 {
@@ -41,6 +43,8 @@ typedef struct
     char *form_insert_fieldNames[INSERT_FORM_NUM_FIELDS];
 
     uint32_t n_records;
+
+    char *content_about;
 
     char *title_main;
     char *title_insert;
@@ -80,11 +84,14 @@ typedef struct
 LM_STATE*   lm_initState();
 void        lm_delState(LM_STATE *s);
 void        lm_drawMainWin(LM_STATE *s);
-void        lm_drawRecord(LM_STATE *s, db_Book *book);
 void        lm_drawInsertWin(LM_STATE *s);
-db_Book*    lm_handleEvent_insertWindow(LM_STATE *s);
-uint8_t     lm_windowTyper_insert();
-uint8_t     lm_windowTyper_main();
+void        lm_drawAboutWin(LM_STATE *s);
+void        lm_drawRecord(LM_STATE *s, db_Book *book);
+db_Book*    lm_handleEvent_insert(LM_STATE *s);
+uint8_t     lm_menuItemFunc_insert();
+uint8_t     lm_menuItemFunc_remove();
+uint8_t     lm_menuItemFunc_about();
+uint8_t     lm_menuItemFunc_quit();
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~START DATABASE HEADER~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
