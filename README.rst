@@ -60,6 +60,9 @@ Press <Enter> to select a menu item.
 In the insert window, press tab to navigate the insert fields.
 Press <Enter> to insert the fields as a book entry and close the insert window.
 
+To remove an inserted book, type the title of the desired book
+into the title field of the remove window and press <Enter>.
+
 FAQs
 ====
 
