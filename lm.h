@@ -17,9 +17,16 @@
 #define ABOUT_ITEM  2
 #define QUIT_ITEM   3
 
+#define SORT_TITLE          0
+#define SORT_AUTHOR         1
+#define SORT_PUBLISHER      2
+#define SORT_DATE_PUBLISHED 3
+#define SORT_PAGE_COUNT     4
+
 typedef struct
 {
-    uint8_t isRunning;
+    unsigned int sortOrder : 3;
+    unsigned int isRunning : 1;
 
     MYSQL *db;
 
@@ -81,7 +88,7 @@ typedef struct
     int page_count;
 } db_Book;
 
-LM_STATE*   lm_initState();
+LM_STATE*   lm_initState(uint8_t sortType);
 void        lm_delState(LM_STATE *s);
 void        lm_drawMainWin(LM_STATE *s);
 void        lm_drawInsertWin(LM_STATE *s);

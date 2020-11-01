@@ -92,10 +92,26 @@ uint8_t checkDB(MYSQL *db, char *database_name, char *table_name)
 
 int main(int argc, char *argv[])
 {
-    if (argc < 3)
+    uint8_t sort = 0;
+    if (argc < 3 || argc > 4)
     {
-        printf("Usage:\n\t%s {database} {table}\n\n", argv[0]);
+        printf("Usage:\n\t%s {database} {table} [-t|-a|-d|-p|-c]\n\n", argv[0]);
         exit(EXIT_FAILURE);
+    }
+
+    // Testing sorting command line arguments
+    for (size_t i = 0; i < argc; i++)
+    {
+        if (strcmp("-t", argv[i]) == 0)
+            sort = SORT_TITLE;
+        if (strcmp("-a", argv[i]) == 0)
+            sort = SORT_AUTHOR;
+        if (strcmp("-d", argv[i]) == 0)
+            sort = SORT_DATE_PUBLISHED;
+        if (strcmp("-p", argv[i]) == 0)
+            sort = SORT_PUBLISHER;
+        if (strcmp("-c", argv[i]) == 0)
+            sort = SORT_PAGE_COUNT;
     }
 
     char *database_name = argv[1];
@@ -112,7 +128,7 @@ int main(int argc, char *argv[])
     noecho();
 
     //TODO: Change the ordering of these
-    LM_STATE *state = lm_initState();
+    LM_STATE *state = lm_initState(sort);
     state->db = db_initDB(username, password, database_name);
 
     // Checking if there is a database/table with those names
@@ -127,7 +143,27 @@ int main(int argc, char *argv[])
         lm_drawMainWin(state);
         //start book list update code
         char select_all[255];
-        sprintf(select_all, "SELECT * from %s", table_name);
+        switch (state->sortOrder)
+        {
+            case SORT_TITLE:
+                sprintf(select_all, "SELECT * FROM %s", table_name);
+                break;
+            case SORT_AUTHOR:
+                sprintf(select_all, "SELECT * FROM %s ORDER BY author", table_name);
+                break;
+            case SORT_PUBLISHER:
+                sprintf(select_all, "SELECT * FROM %s ORDER BY publisher", table_name);
+                break;
+            case SORT_DATE_PUBLISHED:
+                sprintf(select_all, "SELECT * FROM %s ORDER BY date_published", table_name);
+                break;
+            case SORT_PAGE_COUNT:
+                sprintf(select_all, "SELECT * FROM %s ORDER BY page_count", table_name);
+                break;
+            default:
+                sprintf(select_all, "SELECT * FROM %s", table_name);
+                break;
+        }
         mysql_real_query(state->db, select_all, strlen(select_all));
         MYSQL_RES *res = mysql_use_result(state->db);
         lm_update_listing(res, state);

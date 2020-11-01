@@ -152,9 +152,10 @@ void lm_drawAboutWin(LM_STATE *s)
  * This struct will be passed all over the program and
  * mutated as required.
  */
-LM_STATE *lm_initState()
+LM_STATE *lm_initState(uint8_t sortType)
 {
     LM_STATE *local_state = (LM_STATE*) calloc(1, sizeof(*local_state));
+    local_state->sortOrder = sortType;
     local_state->isRunning = 1;
 
     // Initializing main window dimensions and position
