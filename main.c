@@ -23,6 +23,74 @@
 
 #include "lm.h"
 
+#define EXIT_OK                         0
+#define EXIT_DB_NOT_FOUND               1
+#define EXIT_FAILED_TO_CONNECT_TO_DB    2
+#define EXIT_TABLE_NOT_FOUND            3
+
+void clm_terminate(LM_STATE *s, uint8_t exit_code)
+{
+    endwin();
+    switch (exit_code)
+    {
+        case EXIT_DB_NOT_FOUND:
+            fprintf(stderr, "ERROR: DB NOT FOUND\nExiting...\n");
+            printf("ERROR: DB NOT FOUND\nExiting...\n");
+            break;
+        case EXIT_FAILED_TO_CONNECT_TO_DB:
+            fprintf(stderr, "ERROR: FAILED TO CONNECT TO TABLE\nExiting...\n");
+            printf("ERROR: FAILED TO CONNECT TO TABLE\nExiting...\n");
+            break;
+        case EXIT_TABLE_NOT_FOUND:
+            fprintf(stderr, "ERROR: TABLE NOT FOUND\nExiting...\n");
+            printf("ERROR: TABLE NOT FOUND\nExiting...\n");
+            break;
+        case EXIT_OK:
+            fprintf(stderr, "Exiting: EXIT OK\n");
+            printf("Exiting: EXIT OK\n");
+            exit(0);
+            break;
+    }
+
+    lm_delState(s);
+    mysql_library_end();
+    exit(1);
+}
+
+uint8_t checkDB(MYSQL *db, char *database_name, char *table_name)
+{
+    uint8_t db_found = 0;
+    uint8_t table_found = 0;
+    uint8_t err;
+    
+    MYSQL_RES *res;
+    mysql_real_query(db, "SHOW DATABASES", strlen("SHOW DATABASES"));
+    res = mysql_use_result(db);
+
+    MYSQL_ROW row;
+    while ((row = mysql_fetch_row(res)) != NULL)
+        if (strcmp(row[0], database_name) == 0)
+            db_found = 1;
+    mysql_free_result(res);
+
+    if (!db_found) return EXIT_DB_NOT_FOUND;
+
+    char query[255];
+    sprintf(query, "USE %s", database_name);
+    err = mysql_real_query(db, query, strlen(query));
+    if (err) return EXIT_FAILED_TO_CONNECT_TO_DB;
+
+    res = mysql_list_tables(db, NULL);
+    while ((row = mysql_fetch_row(res)) != NULL)
+        if (strcmp(row[0], table_name) == 0)
+            table_found = 1;
+    mysql_free_result(res);
+
+    if (!table_found) return EXIT_TABLE_NOT_FOUND;
+
+    return 0;
+}
+
 int main(int argc, char *argv[])
 {
     if (argc < 3)
@@ -44,8 +112,13 @@ int main(int argc, char *argv[])
     curs_set(0);
     noecho();
 
+    //TODO: Change the ordering of these
     LM_STATE *state = lm_initState();
     state->db = db_initDB(username, password, database_name);
+
+    // Checking if there is a database/table with those names
+    uint8_t err = checkDB(state->db, database_name, table_name);
+    if (err != 0) clm_terminate(state, err);
 
     PANEL *top = state->pnl_main;
     int32_t input;
@@ -129,9 +202,6 @@ int main(int argc, char *argv[])
                 break;
         }
     }
-
-    lm_delState(state);
-    mysql_library_end();
-    endwin();
+    clm_terminate(state, EXIT_OK);
     return 0;
 }
