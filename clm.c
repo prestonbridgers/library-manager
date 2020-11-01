@@ -166,10 +166,6 @@ LM_STATE *lm_initState()
     local_state->y_main = (LINES - local_state->h_main) / 2;
     local_state->n_records = 0;
 
-    fprintf(stderr, "\nh_main: %d\nw_main: %d\ny_main: %d\nx_main: %d\n",
-                    local_state->h_main, local_state->w_main,
-                    local_state->y_main, local_state->x_main);
-
     // Creating the curses window and creating a panel with it
     local_state->win_main = newwin(local_state->h_main, local_state->w_main,
                                    local_state->y_main, local_state->x_main);
@@ -210,10 +206,6 @@ LM_STATE *lm_initState()
     local_state->w_insert = COLS / scale_insert;
     local_state->x_insert = (COLS - local_state->w_insert) / 2;
     local_state->y_insert = (LINES - local_state->h_insert) / 2;
-
-    fprintf(stderr, "\nh_insert: %d\nw_insert: %d\ny_insert: %d\nx_insert: %d\n",
-                    local_state->h_insert, local_state->w_insert,
-                    local_state->y_insert, local_state->x_insert);
 
     // Creating the curses window and creating a panel with it
     local_state->win_insert = newwin(local_state->h_insert, local_state->w_insert,
@@ -269,7 +261,6 @@ LM_STATE *lm_initState()
                                      local_state->y_about, local_state->x_about);
 
     local_state->content_about = "Curt's Library Manager; an easy to use personal library management system.\nCopyright (C) 2020  Preston Bridgers\n\nThis program is free software: you can redistribute it and/or modify\nit under the terms of the GNU General Public License as published by\nthe Free Software Foundation, either version 3 of the License, or\n(at your option) any later version.\n\nThis program is distributed in the hope that it will be useful,\nbut WITHOUT ANY WARRANTY; without even the implied warranty of\nMERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\nGNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License\nalong with this program.  If not, see <http://www.gnu.org/licenses/>.";
-    fprintf(stderr, "\n%s\n", local_state->content_about);
     
     local_state->pnl_about = new_panel(local_state->win_about);
     local_state->pnl_insert = new_panel(local_state->win_insert);
