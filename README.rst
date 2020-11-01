@@ -54,7 +54,7 @@ Compilation
 -----------
 
 Simply clone the repository, navigate to the root directory and run
-`make run` to compile and launch the program.
+``make run`` to compile and launch the program.
 
 Keybinds
 --------
