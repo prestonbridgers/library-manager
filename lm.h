@@ -97,6 +97,7 @@ uint8_t     lm_menuItemFunc_quit();
 
 MYSQL*      db_initDB(char *user, char *pass, char *db_name);
 void        db_insertBook(MYSQL *db, char *table, db_Book *book);
+void        db_removeBook(MYSQL *db, char *table, char *title);
 void        db_destroyBook(db_Book *b);
 db_Book*    db_getBookFields(LM_STATE *s);
 size_t      trimwhitespace(char *out, size_t len, const char *str);

@@ -188,6 +188,7 @@ LM_STATE *lm_initState()
     set_menu_mark(local_state->menu_main, " * ");
 
     set_item_userptr(local_state->menu_main_items[0], &lm_menuItemFunc_insert);
+    set_item_userptr(local_state->menu_main_items[1], &lm_menuItemFunc_remove);
     set_item_userptr(local_state->menu_main_items[2], &lm_menuItemFunc_about);
     set_item_userptr(local_state->menu_main_items[3], &lm_menuItemFunc_quit);
 
@@ -405,6 +406,12 @@ db_Book *lm_handleEvent_insert(LM_STATE *s)
     }
 
     curs_set(0);
+
+    // Clearing the fields the user typed
+    for (int i = 0; i < INSERT_FORM_NUM_FIELDS; i++)
+        if (i % 2 == 1)
+            set_field_buffer(s->form_insert_fields[i], 0, "");
+
     return book;
 }
 

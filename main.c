@@ -49,6 +49,7 @@ int main(int argc, char *argv[])
 
     PANEL *top = state->pnl_main;
     int32_t input;
+    uint8_t isRemove = 0;
     while (state->isRunning)
     {
         lm_drawMainWin(state);
@@ -69,10 +70,13 @@ int main(int argc, char *argv[])
         {
             db_Book *book = lm_handleEvent_insert(state);
 
-            db_insertBook(state->db, table_name, book);
-            fprintf(stderr, "Inserted book, destroying book struct\n");
+            if (isRemove)
+                db_removeBook(state->db, table_name, book->title);
+            else
+                db_insertBook(state->db, table_name, book);
+            isRemove = 0;
+
             db_destroyBook(book);
-            fprintf(stderr, "Destroyed book\n");
 
             top = state->pnl_main;
             top_panel(top);
@@ -117,6 +121,12 @@ int main(int argc, char *argv[])
                         getch();
                         top = (PANEL*) state->pnl_main;
                         top_panel(top);
+                    }
+                    else if (item_selected == REMOVE_ITEM)
+                    {
+                        top = (PANEL*) state->pnl_insert;
+                        top_panel(top);
+                        isRemove = 1;
                     }
                 }
                 break;

@@ -123,6 +123,20 @@ void db_insertBook(MYSQL *db, char *table, db_Book *book)
         fprintf(stderr, "Error occured adding book\n");
 }
 
+void db_removeBook(MYSQL *db, char *table, char *title)
+{
+    char query[255];
+    size_t query_len;
+    int err;
+
+    sprintf(query, "DELETE FROM %s WHERE title=\"%s\"", table, title);
+    query_len = strlen(query);
+
+    err = mysql_real_query(db, query, query_len);
+    if (err)
+        fprintf(stderr, "Error occured removing book\n");
+}
+
 /*
  * Destructor for the db_Book struct.
  */
