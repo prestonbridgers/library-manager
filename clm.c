@@ -143,6 +143,10 @@ void lm_drawAboutWin(LM_STATE *s)
         x++;
     }
 
+    // Drawing "Press any key to continue..." at the bottom
+    lm_drawCenteredString(s->win_about, s->w_about, s->h_about - 2,
+                          "Press any key to continue...");
+
     // Drawing solid border around window
     box(s->win_about, 0, 0);
 }
