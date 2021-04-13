@@ -10,10 +10,6 @@ Curt's Library Manager is a project started in 2020 by `Preston Bridgers`_.
 
 .. _preston bridgers: https://www.linkedin.com/in/prestonbridgers
 
-For more detailed documentation please see the `project website`_.
-
-.. _project website: http://www.prestonbridgers.com
-
 Equipment Needed
 ================
 
