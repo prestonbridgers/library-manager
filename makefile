@@ -19,5 +19,5 @@ clean:
 
 run:
 	make
-	./clm library book -t 2> err.log
+	./clm library books -t 2> err.log
 	make clean

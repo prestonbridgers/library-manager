@@ -116,8 +116,8 @@ int main(int argc, char *argv[])
 
     char *database_name = argv[1];
     char *table_name    = argv[2];
-    char *username = "root";
-    char *password = "adamsandler1";
+    char *username = "bridgerspc";
+    char *password = "adamsandler123";
 
     // DEBUG
     fprintf(stderr, "Program initialization:\n\tDatabase name:\t%s\n\tTable name:\t%s\n\n",
@@ -149,16 +149,16 @@ int main(int argc, char *argv[])
                 sprintf(select_all, "SELECT * FROM %s", table_name);
                 break;
             case SORT_AUTHOR:
-                sprintf(select_all, "SELECT * FROM %s ORDER BY author", table_name);
+                sprintf(select_all, "SELECT * FROM %s ORDER BY Author", table_name);
                 break;
             case SORT_PUBLISHER:
-                sprintf(select_all, "SELECT * FROM %s ORDER BY publisher", table_name);
+                sprintf(select_all, "SELECT * FROM %s ORDER BY Publisher", table_name);
                 break;
             case SORT_DATE_PUBLISHED:
-                sprintf(select_all, "SELECT * FROM %s ORDER BY date_published", table_name);
+                sprintf(select_all, "SELECT * FROM %s ORDER BY Date", table_name);
                 break;
             case SORT_PAGE_COUNT:
-                sprintf(select_all, "SELECT * FROM %s ORDER BY page_count", table_name);
+                sprintf(select_all, "SELECT * FROM %s ORDER BY Page_Count", table_name);
                 break;
             default:
                 sprintf(select_all, "SELECT * FROM %s", table_name);

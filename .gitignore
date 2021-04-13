@@ -1,5 +1,6 @@
 *.o
-lm
 TODO
-errlog.txt
+err.log
+tags
+clm
 
