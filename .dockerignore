@@ -1,0 +1,5 @@
+clm
+*.o
+err.log
+tags
+TODO
